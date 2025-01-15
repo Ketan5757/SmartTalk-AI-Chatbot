@@ -1,8 +1,10 @@
-import './dashboard.css'
+// src/routes/dashboard/dashboard.jsx
+import './dashboard.css';
 
-const dashboard = () => {
+const Dashboard = () => {
     return (
         <div className='dashboard'>Dashboard</div>
-    )
-}
-export default dashboard
+    );
+};
+
+export default Dashboard;

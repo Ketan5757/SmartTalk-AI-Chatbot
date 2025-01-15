@@ -3,19 +3,32 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Homepage from './routes/homepage/homepage';
+import Rootlayout from './layouts/rootlayout/rootlayout';
+import Dashboardlayout from './layouts/dashboardlayout/dashboardlayout';
 import Dashboard from './routes/dashboard/dashboard';
-import Chatpage from './routes/chatpage/chatpage'; // Fixed import name
+import Chatpage from './routes/chatpage/chatpage';
 
 const router = createBrowserRouter([
   {
-    path: '/',
-    element: <Homepage />,
-  },
-  {
-    path: '/dashboard',
+    element: <Rootlayout />,
     children: [
-      { path: '/dashboard', element: <Dashboard /> },
-      { path: '/dashboard/chats/:id', element: <Chatpage /> }, // Fixed component usage
+      {
+        path: "/",
+        element: <Homepage />,
+      },
+      {
+        element: <Dashboardlayout />,
+        children: [
+          {
+            path: "/dashboard",
+            element: <Dashboard />,
+          },
+          {
+            path: "/dashboard/chats/:id",
+            element: <Chatpage />,
+          },
+        ],
+      },
     ],
   },
 ]);

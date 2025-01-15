@@ -1,8 +1,10 @@
-import './chatpage.css'
+// src/routes/chatpage/chatpage.jsx
+import './chatpage.css';
 
-const chatpage = () => {
+const Chatpage = () => {
     return (
         <div className='chatpage'>Chatpage</div>
-    )
-}
-export default chatpage
+    );
+};
+
+export default Chatpage;
