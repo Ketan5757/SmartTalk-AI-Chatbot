@@ -1,8 +1,10 @@
+import { SignUp } from '@clerk/react-router'
 import './signUpPage.css'
 
 const SignUpPage  = () => {
     return(
-        <div className='signUpPage'>SignUpPage</div>
+        <div className='signUpPage'>
+            <SignUp path="/sign-up" signInUrl="sign-in"/></div>
     )
 }
 
