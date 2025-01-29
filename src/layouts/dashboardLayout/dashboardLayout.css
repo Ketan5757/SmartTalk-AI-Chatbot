@@ -9,7 +9,8 @@
     }
 
     .content{
-        flex: 4;
-        background-color: #555555;
+        flex: 5;
+        background-color: #333333;
+        margin-top: -40px;
     }
 }
