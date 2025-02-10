@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import './newPrompt.css'
 import Upload from '../upload/Upload';
 import { IKImage } from 'imagekitio-react';
+import model from "../../lib/gemini"
 
 const NewPrompt  = () => {
 
@@ -15,6 +16,16 @@ const NewPrompt  = () => {
     useEffect(()=>{
         endRef.current.scrollIntoView({behavior : "smooth"});
     },[])
+
+    const  add = async ()=>{
+        const prompt = "Write a Story abot an AI and Magic";
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.text();
+        console.log(text);
+    };
+
     return(
         <>
         {/*ADD NEW CHAT*/}
@@ -28,8 +39,10 @@ const NewPrompt  = () => {
             
             />
         )}
-        
+
+        <button onClick={add}>TEST AI</button>
         <div className="endChat" ref={endRef}></div>
+        
             <form className='newForm'>
                 <Upload setImg={setImg}/>
                 <input id='file' type="file" multiple={false}  hidden/>
