@@ -63,7 +63,7 @@ const NewPrompt  = () => {
 
         add(text)
 
-    }
+    };
 
     return(
         <>
