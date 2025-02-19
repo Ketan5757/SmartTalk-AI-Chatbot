@@ -38,12 +38,14 @@ app.get("/api/upload",(req,res)=>{
     res.send(result);
 })
 
-app.get("/api/test", ClerkExpressRequireAuth(), (req, res)=>{
-    console.log("Success")
-    res.send("Success!")
-})
+//app.get("/api/test", ClerkExpressRequireAuth(), (req, res)=>{
+//    const userId = req.auth.userId;
+//    console.log(userId)
+//    res.send("Success!")
+//})
 app.post("/api/chats",ClerkExpressRequireAuth(),async (req,res)=>{
-    const{userId, text} = req.body
+    const userId = req.auth.userId
+    const{text} = req.body;
 
     try{
         //CREATE A NEW CHAT
@@ -92,9 +94,38 @@ app.post("/api/chats",ClerkExpressRequireAuth(),async (req,res)=>{
 
     }catch(err){
         console.log(err)
-        res.status(500).send("Error creating chat!")
+        res.status(500).send("Error creating chat!");
     }
-})
+});
+
+
+app.get("/api/userchats", ClerkExpressRequireAuth(),async(req, res)=>{
+    const userId = req.auth.userId
+
+    try{
+        const userChats = await UserChats.find({userId})
+        res.status(200).send(userChats[0].chats);
+
+    }catch(err){
+        console.log(err)
+        res.status(500).send("Error fetching userchats!");
+    }
+
+});
+
+app.get("/api/chats/:id", ClerkExpressRequireAuth(),async(req, res)=>{
+    const userId = req.auth.userId
+
+    try{
+        const chat = await Chat.findOne({_id: req.params.id, userId})
+        res.status(200).send(chat);
+
+    }catch(err){
+        console.log(err)
+        res.status(500).send("Error fetching chat!");
+    }
+
+});
 
 app.use((err, req, res, next)=>{
     console.error(err.stack);

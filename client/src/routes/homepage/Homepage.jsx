@@ -6,12 +6,6 @@ import { useState } from 'react';
 const Homepage = () => {
 
     const[typingStatus,SetTypingStatus] =useState("Human1");
-
-    const test  = async ()=>{
-        await fetch("http://localhost:3000/api/test",{
-            credentials:"include",
-        });
-    };
     
     return (
         <div className='homepage'>
@@ -21,7 +15,6 @@ const Homepage = () => {
                 <h2>Transform the way you Work and Think</h2>
                 <h3>Your gateway to smarter ideas, faster solutions, and limitless creativity—all powered by SmartTalk, the most powerful AI for your needs</h3>
                 <Link to="/dashboard">Get Started</Link>
-                <button onClick={test}>TEST BACKEND AUTH</button>
             </div>
             <div className="right">
                 <div className="imgContainer">
