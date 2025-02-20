@@ -13,9 +13,10 @@ app.use(
     cors({
     origin: process.env.CLIENT_URL,
     credentials:true,
-}));
+})
+);
 
-app.use(express.json())
+app.use(express.json());
 
 const connect = async ()=>{
     try{
@@ -25,7 +26,7 @@ const connect = async ()=>{
     }catch(err){
         console.log(err)
     }
-}
+};
 
 const imagekit = new ImageKit({
     urlEndpoint: process.env.IMAGE_KIT_ENDPOINT,
@@ -52,13 +53,13 @@ app.post("/api/chats",ClerkExpressRequireAuth(),async (req,res)=>{
 
         const newChat = new Chat({
             userId:userId, 
-            history:[{role:"user", parts:[{text}]}]
+            history:[{role:"user", parts:[{text}]}],
         });
 
-        const savedChat = await newChat.save()
+        const savedChat = await newChat.save();
 
         //CHECK IF THE USER CHATS EXISTS
-        const userChats = await UserChats.find({userId: userId})
+        const userChats = await UserChats.find({userId: userId});
 
         //IF DOESNT EXIST CREATE A NEW ONE AND ADD THE CHAT IN THE CHATS ARRAY
 
@@ -70,22 +71,24 @@ app.post("/api/chats",ClerkExpressRequireAuth(),async (req,res)=>{
                         _id: savedChat._id,
                         title:text.substring(0,40),
                         
-                    }
-                ]
-            })
-            await newUsersChats.save()
-        }
-        else{
-            //IF EXISTS, PUSH THE CHAT TO THE EXISTING ARRAY
-            await UserChats.updateOne({userId: userId},{
-                $push:{
-                    chats:{
-                        _id:savedChat._id,
-                        title: text.substring(0,40)
                     },
+                ],
+            });
+            await newUsersChats.save();
+        }else {
+            // IF EXISTS, PUSH THE CHAT TO THE EXISTING ARRAY
+            await UserChats.updateOne(
+              { userId: userId },
+              {
+                $push: {
+                  chats: {
+                    _id: savedChat._id,
+                    title: text.substring(0, 40),
+                  },
                 },
-            }
-        );
+              }
+            );
+        
 
         res.status(201).send(newChat._id);
 
@@ -93,17 +96,17 @@ app.post("/api/chats",ClerkExpressRequireAuth(),async (req,res)=>{
 
 
     }catch(err){
-        console.log(err)
+        console.log(err);
         res.status(500).send("Error creating chat!");
     }
 });
 
 
 app.get("/api/userchats", ClerkExpressRequireAuth(),async(req, res)=>{
-    const userId = req.auth.userId
+    const userId = req.auth.userId;
 
     try{
-        const userChats = await UserChats.find({userId})
+        const userChats = await UserChats.find({userId});
         res.status(200).send(userChats[0].chats);
 
     }catch(err){
@@ -114,14 +117,14 @@ app.get("/api/userchats", ClerkExpressRequireAuth(),async(req, res)=>{
 });
 
 app.get("/api/chats/:id", ClerkExpressRequireAuth(),async(req, res)=>{
-    const userId = req.auth.userId
+    const userId = req.auth.userId;
 
     try{
-        const chat = await Chat.findOne({_id: req.params.id, userId})
+        const chat = await Chat.findOne({_id: req.params.id, userId});
         res.status(200).send(chat);
 
     }catch(err){
-        console.log(err)
+        console.log(err);
         res.status(500).send("Error fetching chat!");
     }
 
@@ -129,10 +132,10 @@ app.get("/api/chats/:id", ClerkExpressRequireAuth(),async(req, res)=>{
 
 app.use((err, req, res, next)=>{
     console.error(err.stack);
-    res.status(401).send('Unauthenticated!');
+    res.status(401).send("Unauthenticated!");
 });
 
 app.listen(port,()=>{
-    connect()
+    connect();
     console.log("Server running on 3000");
 });

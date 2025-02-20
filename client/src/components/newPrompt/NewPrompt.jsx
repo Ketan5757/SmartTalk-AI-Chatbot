@@ -34,7 +34,7 @@ const NewPrompt  = () => {
     });
 
 
-    const endRef = useRef(null)
+    const endRef = useRef(null);
 
     useEffect(()=>{
         endRef.current.scrollIntoView({behavior : "smooth"});
