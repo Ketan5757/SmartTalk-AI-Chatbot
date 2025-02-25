@@ -41,20 +41,22 @@ app.get("/api/upload", (req, res) => {
 // Weather API route
 app.get("/api/weather/:location", async (req, res) => {
   const location = req.params.location;
-  const apiKey = process.env.WEATHER_API_KEY;
+  console.log(`🌍 Fetching weather data for: ${location}`);
+
+  if (!location) {
+    return res.status(400).json({ error: "❌ Invalid location parameter." });
+  }
 
   try {
-    const response = await axios.get(
-      `https://api.openweathermap.org/data/2.5/weather`,
-      {
-        params: {
-          q: location,
-          appid: apiKey,
-          units: "metric",
-        },
-      }
-    );
+    const response = await axios.get(`https://api.openweathermap.org/data/2.5/weather`, {
+      params: {
+        q: location,
+        appid: process.env.WEATHER_API_KEY,  // Ensure API Key is correct
+        units: "metric",
+      },
+    });
 
+    console.log("✅ Weather API Response:", response.data);
     res.json({
       location: response.data.name,
       weather: response.data.weather[0].description,
@@ -62,11 +64,18 @@ app.get("/api/weather/:location", async (req, res) => {
       humidity: response.data.main.humidity,
       wind_speed: response.data.wind.speed,
     });
+
   } catch (error) {
-    console.error(error);
-    res.status(500).send("Error fetching weather data!");
+    if (error.response) {
+      console.error(`❌ OpenWeather API Error:`, error.response.data);
+      res.status(error.response.status).json({ error: error.response.data.message || "Error fetching weather data!" });
+    } else {
+      console.error(`❌ Internal Server Error:`, error.message);
+      res.status(500).json({ error: "Internal server error while fetching weather data!" });
+    }
   }
 });
+
 
 // Create new chat
 app.post("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {

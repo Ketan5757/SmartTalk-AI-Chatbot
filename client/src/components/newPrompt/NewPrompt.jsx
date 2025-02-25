@@ -5,11 +5,12 @@ import { IKImage } from "imagekitio-react";
 import model from "../../lib/gemini";
 import Markdown from "react-markdown";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from 'axios';
+import axios from "axios";
 
 const NewPrompt = ({ data }) => {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const [img, setImg] = useState({
     isLoading: false,
@@ -24,15 +25,19 @@ const NewPrompt = ({ data }) => {
 
   const mutation = useMutation({
     mutationFn: async () => {
-      return axios.put(`${import.meta.env.VITE_API_URL}/api/chats/${data._id}`, {
-        question: question.length ? question : undefined,
-        answer,
-        img: img.dbData?.filePath || undefined,
-      }, {
-        withCredentials: true,
-      });
+      console.log("🔄 Updating chat history:", { question, answer, img });
+      return axios.put(
+        `${import.meta.env.VITE_API_URL}/api/chats/${data._id}`,
+        {
+          question: question.length ? question : undefined,
+          answer,
+          img: img.dbData?.filePath || undefined,
+        },
+        { withCredentials: true }
+      );
     },
     onSuccess: () => {
+      console.log("✅ Chat history updated!");
       queryClient.invalidateQueries({ queryKey: ["chat", data._id] });
       formRef.current.reset();
       setQuestion("");
@@ -45,45 +50,92 @@ const NewPrompt = ({ data }) => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [data, question, answer, img.dbData]);
 
+  // 🔹 Enhanced Weather Query Detection
+  const isWeatherQuery = (text) => {
+    const keywords = ["weather", "temperature", "forecast", "humidity", "wind"];
+    return keywords.some((keyword) => text.toLowerCase().includes(keyword));
+  };
+
+  // 🔹 Improved Location Extraction
+  const extractLocation = (text) => {
+    const words = text.toLowerCase().split(" ");
+    return words.find((word) => !["weather", "temperature", "forecast", "humidity", "wind", "is", "the", "in", "what"].includes(word));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const text = e.target.text.value.trim();
     if (!text) return;
 
     setQuestion(text);
+    setLoading(true);
 
-    const locationMatch = text.match(/weather in ([a-zA-Z\s]+)/i);
+    console.log("🟢 User input received:", text);
 
-    if (locationMatch) {
-      const location = locationMatch[1].split(" ")[0].trim();
+    // Weather Query Handling
+    if (isWeatherQuery(text)) {
+      console.log("🌤️ Detected a weather-related query. Processing...");
 
-      try {
-        const weatherRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/weather/${location}`, { withCredentials: true });
+      let location = extractLocation(text);
+      if (location) {
+        location = location.charAt(0).toUpperCase() + location.slice(1);
+        console.log("🌍 Extracted location:", location);
 
-        const weatherInfo = weatherRes.data;
-        const weatherText = `The current weather in ${weatherInfo.location} is ${weatherInfo.weather}. The temperature is ${weatherInfo.temperature}°C, humidity is around ${weatherInfo.humidity}%, and wind speed is ${weatherInfo.wind_speed} m/s.`;
+        try {
+          const weatherRes = await axios.get(
+            `${import.meta.env.VITE_API_URL}/api/weather/${encodeURIComponent(location)}`,
+            { withCredentials: true }
+          );
 
-        setAnswer(weatherText);
-        mutation.mutate();
-      } catch (error) {
-        console.error(error);
-        setAnswer("I'm having trouble fetching the weather right now. Please try again later.");
-      }
-    } else {
-      try {
-        const chat = model.startChat({ generationConfig: {} });
-        const result = await chat.sendMessageStream([text]);
+          console.log("✅ Weather API Response:", weatherRes.data);
+          if (weatherRes.data.error) {
+            setAnswer("❌ City not found. Please enter a valid location.");
+            setLoading(false);
+            return;
+          }
 
-        let accumulatedText = "";
-        for await (const chunk of result.stream) {
-          accumulatedText += chunk.text();
-          setAnswer(accumulatedText);
+          const weatherInfo = weatherRes.data;
+          const weatherText = `🌤️ The current weather in **${weatherInfo.location}** is **${weatherInfo.weather}**.
+            - 🌡️ Temperature: **${weatherInfo.temperature}°C**
+            - 💧 Humidity: **${weatherInfo.humidity}%**
+            - 💨 Wind Speed: **${weatherInfo.wind_speed} m/s**`;
+
+          console.log("📩 Setting weather answer in chat:", weatherText);
+          setAnswer(weatherText);
+          mutation.mutate();
+          setLoading(false);
+          return;
+        } catch (error) {
+          console.error("❌ Weather API error:", error.response?.data || error.message);
+          setAnswer("⚠️ Unable to fetch the weather. Please try again later.");
+          setLoading(false);
+          return;
         }
-
-        mutation.mutate();
-      } catch (err) {
-        setAnswer("An error occurred, please try again.");
+      } else {
+        console.log("❌ No valid location found in query. Sending to AI model.");
       }
+    }
+
+    console.log("🔵 Not a weather query. Sending to AI model...");
+
+    try {
+      const chat = model.startChat({ generationConfig: {} });
+      const result = await chat.sendMessageStream([text]);
+
+      let accumulatedText = "";
+      for await (const chunk of result.stream) {
+        accumulatedText += chunk.text();
+        console.log("📝 Received AI response chunk:", chunk.text());
+        setAnswer(accumulatedText);
+      }
+
+      console.log("✅ Final AI answer:", accumulatedText);
+      mutation.mutate();
+    } catch (err) {
+      console.error("❌ AI model error:", err);
+      setAnswer("⚠️ An error occurred, please try again.");
+    } finally {
+      setLoading(false);
     }
 
     formRef.current.reset();
@@ -91,7 +143,9 @@ const NewPrompt = ({ data }) => {
 
   return (
     <>
-      {img.isLoading && <div>Loading...</div>}
+      {loading && <div>⏳ Processing your request...</div>}
+
+      {img.isLoading && <div>⏳ Uploading image...</div>}
 
       {img.dbData?.filePath && (
         <IKImage
@@ -103,14 +157,14 @@ const NewPrompt = ({ data }) => {
       )}
 
       {question && <div className="message user">{question}</div>}
+
       {answer && <div className="message"><Markdown>{answer}</Markdown></div>}
 
       <div className="endChat" ref={endRef}></div>
 
       <form className="newForm" onSubmit={handleSubmit} ref={formRef}>
         <Upload setImg={setImg} />
-        <input id="file" type="file" multiple={false} hidden />
-        <input type="text" name="text" placeholder="Ask me anything..." />
+        <input type="text" name="text" placeholder="Ask me anything..." required />
         <button type="submit">
           <img src="/arrow.png" alt="Send" />
         </button>
