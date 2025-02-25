@@ -31,7 +31,7 @@ const NewPrompt = ({ data }) => {
         {
           question: question.length ? question : undefined,
           answer,
-          img: img.dbData?.filePath || undefined,
+          img: img.dbData?.filePath ? { filePath: img.dbData.filePath } : undefined,
         },
         { withCredentials: true }
       );
@@ -100,9 +100,14 @@ const NewPrompt = ({ data }) => {
             - 💧 Humidity: **${weatherInfo.humidity}%**
             - 💨 Wind Speed: **${weatherInfo.wind_speed} m/s**`;
 
-          console.log("📩 Setting weather answer in chat:", weatherText);
+          console.log("📩 Before setting answer:", answer);
           setAnswer(weatherText);
-          mutation.mutate();
+
+          await new Promise((resolve) => setTimeout(resolve, 100)); // Ensures state updates
+
+          console.log("📩 After setting answer:", answer);  // Confirm that answer is set
+
+          await mutation.mutateAsync();  // Wait for chat update
           setLoading(false);
           return;
         } catch (error) {
@@ -120,17 +125,37 @@ const NewPrompt = ({ data }) => {
 
     try {
       const chat = model.startChat({ generationConfig: {} });
-      const result = await chat.sendMessageStream([text]);
+      const input = img.dbData?.filePath ? [img.dbData, text] : [text];
+
+      const result = await chat.sendMessageStream(input);
+
 
       let accumulatedText = "";
       for await (const chunk of result.stream) {
         accumulatedText += chunk.text();
-        console.log("📝 Received AI response chunk:", chunk.text());
-        setAnswer(accumulatedText);
-      }
+        console.log("📝 AI Response Chunk:", chunk.text());
+    
+        // If AI asks for an image, log the request
+        if (chunk.text().toLowerCase().includes("please provide an image")) {
+            console.warn("⚠️ AI is asking for an image, but none was detected.");
+        }
+    
+        setAnswer((prev) => prev + chunk.text());
+    }
+
+      // Ensure the final AI answer is set before updating chat history
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       console.log("✅ Final AI answer:", accumulatedText);
-      mutation.mutate();
+
+      // Force re-render by calling setAnswer again
+      setAnswer(accumulatedText);
+
+      // Ensure chat history is updated before UI refresh
+      await mutation.mutateAsync();
+      setLoading(false);
+
+
     } catch (err) {
       console.error("❌ AI model error:", err);
       setAnswer("⚠️ An error occurred, please try again.");
@@ -140,6 +165,7 @@ const NewPrompt = ({ data }) => {
 
     formRef.current.reset();
   };
+
 
   return (
     <>
