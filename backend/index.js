@@ -44,6 +44,7 @@ app.get("/api/upload",(req,res)=>{
 //    console.log(userId)
 //    res.send("Success!")
 //})
+
 app.post("/api/chats",ClerkExpressRequireAuth(),async (req,res)=>{
     const userId = req.auth.userId
     const{text} = req.body;
