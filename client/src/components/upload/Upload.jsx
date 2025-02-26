@@ -38,20 +38,36 @@ const Upload  = ({setImg}) => {
       };
       
       const onUploadStart = evt => {
-        const file = evt.target.files[0]
-
-        const reader = new FileReader()
-        reader.onloadend = ()=>{
-          setImg(prev=>({...prev, isLoading: true, aiData:{
-            inlineData:{
-              data:reader.result.split(",")[1],
-              mimeType: file.type,
-            }
-          }}))
-
+        const file = evt.target.files[0];
+    
+        if (!file) {
+            console.error("❌ No file selected!");
+            return;
         }
+    
+        console.log("📤 Uploading file:", file);
+        console.log("📄 File type:", file.type);
+    
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            console.log("✅ File read successfully!");
+            console.log("🖼️ Base64 Data (first 100 chars):", reader.result.substring(0, 100));
+    
+            setImg(prev => ({
+                ...prev,
+                isLoading: true,
+                aiData: {
+                    inlineData: {
+                        data: reader.result.split(",")[1], // 🔹 Ensure correct format
+                        mimeType: file.type,
+                    },
+                },
+            }));
+        };
+    
         reader.readAsDataURL(file);
-      };
+    };
+    
 
     return(
         <IKContext

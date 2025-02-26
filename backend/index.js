@@ -150,10 +150,11 @@ app.put("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
   ];
 
   try {
-    const updatedChat = await Chat.updateOne(
+    const updatedChat = await Chat.findOneAndUpdate(
       { _id: req.params.id, userId },
-      { $push: { history: { $each: newItems } } }
-    );
+      { $push: { history: { $each: newItems } } },
+      { new: true } // 🔹 Ensures the updated chat is returned
+  );
 
     res.status(200).send(updatedChat);
   } catch (err) {
