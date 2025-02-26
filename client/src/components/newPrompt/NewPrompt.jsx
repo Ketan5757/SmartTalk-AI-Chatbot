@@ -59,8 +59,22 @@ const NewPrompt = ({ data }) => {
   // 🔹 Improved Location Extraction
   const extractLocation = (text) => {
     const words = text.toLowerCase().split(" ");
-    return words.find((word) => !["weather", "temperature", "forecast", "humidity", "wind", "is", "the", "in", "what"].includes(word));
-  };
+    const stopWords = [
+        "weather", "temperature", "forecast", "humidity", "wind", 
+        "is", "the", "in", "what", "how", "whats", "was", "will", "be", 
+        "yesterday", "today", "tomorrow"
+    ];
+
+    // Filter out stopwords and join the rest as the location
+    const filteredWords = words.filter(word => !stopWords.includes(word));
+    
+    // Capitalize first letter of each word (for correct formatting)
+    const location = filteredWords.map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
+
+    console.log("🔍 Corrected Extracted Location:", location); // Debugging log
+
+    return location || null;
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -87,9 +101,10 @@ const NewPrompt = ({ data }) => {
             { withCredentials: true }
           );
 
+          console.log("✅ Weather API Request:", `${import.meta.env.VITE_API_URL}/api/weather/${encodeURIComponent(location)}`); // Debugging log
           console.log("✅ Weather API Response:", weatherRes.data);
-          if (weatherRes.data.error) {
-            setAnswer("❌ City not found. Please enter a valid location.");
+          if (!location || location.trim() === "") {
+            setAnswer("❌ I couldn't detect a valid location. Please specify a city name.");
             setLoading(false);
             return;
           }
@@ -134,14 +149,14 @@ const NewPrompt = ({ data }) => {
       for await (const chunk of result.stream) {
         accumulatedText += chunk.text();
         console.log("📝 AI Response Chunk:", chunk.text());
-    
+
         // If AI asks for an image, log the request
         if (chunk.text().toLowerCase().includes("please provide an image")) {
-            console.warn("⚠️ AI is asking for an image, but none was detected.");
+          console.warn("⚠️ AI is asking for an image, but none was detected.");
         }
-    
+
         setAnswer((prev) => prev + chunk.text());
-    }
+      }
 
       // Ensure the final AI answer is set before updating chat history
       await new Promise((resolve) => setTimeout(resolve, 100));
