@@ -68,7 +68,7 @@ const NewPrompt = ({ data }) => {
     const stopWords = [
         "weather", "temperature", "forecast", "humidity", "wind", 
         "is", "the", "in", "what", "how", "whats", "was", "will", "be", 
-        "yesterday", "today", "tomorrow"
+        "yesterday", "today", "tomorrow", "next", "day", "week", "month","sunny","cloudy"
     ];
 
     // Filter out stopwords and join the rest as the location
