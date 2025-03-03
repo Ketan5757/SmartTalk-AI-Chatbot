@@ -25,31 +25,31 @@ const NewPrompt = ({ data }) => {
 
   const mutation = useMutation({
     mutationFn: async () => {
-        console.log("🔄 Updating chat history:", { question, answer, img });
-        return axios.put(
-            `${import.meta.env.VITE_API_URL}/api/chats/${data._id}`,
-            {
-                question: question.length ? question : undefined,
-                answer,
-                img: img.dbData?.filePath ? { filePath: img.dbData.filePath } : undefined,
-            },
-            { withCredentials: true }
-        );
+      console.log("🔄 Updating chat history:", { question, answer, img });
+      return axios.put(
+        `${import.meta.env.VITE_API_URL}/api/chats/${data._id}`,
+        {
+          question: question.length ? question : undefined,
+          answer,
+          img: img.dbData?.filePath ? { filePath: img.dbData.filePath } : undefined,
+        },
+        { withCredentials: true }
+      );
     },
     onSuccess: () => {
-        console.log("✅ Chat history updated!");
-        queryClient.invalidateQueries({ queryKey: ["chat", data._id] });
+      console.log("✅ Chat history updated!");
+      queryClient.invalidateQueries({ queryKey: ["chat", data._id] });
 
-        // 🔹 Immediately update local UI instead of waiting for re-fetch
-        data.history.push({ role: "user", parts: [{ text: question }] });
-        data.history.push({ role: "model", parts: [{ text: answer }] });
+      // 🔹 Immediately update local UI instead of waiting for re-fetch
+      data.history.push({ role: "user", parts: [{ text: question }] });
+      data.history.push({ role: "model", parts: [{ text: answer }] });
 
-        formRef.current.reset();
-        setQuestion("");
-        setAnswer("");
-        setImg({ isLoading: false, error: "", dbData: {}, aiData: {} });
+      formRef.current.reset();
+      setQuestion("");
+      setAnswer("");
+      setImg({ isLoading: false, error: "", dbData: {}, aiData: {} });
     },
-});
+  });
 
 
   useEffect(() => {
@@ -66,21 +66,21 @@ const NewPrompt = ({ data }) => {
   const extractLocation = (text) => {
     const words = text.toLowerCase().split(" ");
     const stopWords = [
-        "weather", "temperature", "forecast", "humidity", "wind", 
-        "is", "the", "in", "what", "how", "whats", "was", "will", "be", 
-        "yesterday", "today", "tomorrow", "next", "day", "week", "month","sunny","cloudy"
+      "weather", "temperature", "forecast", "humidity", "wind",
+      "is", "the", "in", "what", "how", "whats", "was", "will", "be",
+      "yesterday", "today", "tomorrow", "next", "day", "week", "month", "sunny", "cloudy"
     ];
 
     // Filter out stopwords and join the rest as the location
     const filteredWords = words.filter(word => !stopWords.includes(word));
-    
+
     // Capitalize first letter of each word (for correct formatting)
     const location = filteredWords.map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
 
     console.log("🔍 Corrected Extracted Location:", location); // Debugging log
 
     return location || null;
-};
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -145,8 +145,19 @@ const NewPrompt = ({ data }) => {
     console.log("🔵 Not a weather query. Sending to AI model...");
 
     try {
-      const chat = model.startChat({ generationConfig: {} });
-      const input = img.dbData?.filePath ? [img.dbData, text] : [text];
+      const chat = model.startChat({
+        history: data?.history?.map((message) => ({
+          role: message.role,
+          parts: [{ text: message.parts[0].text }],
+        })) || [],
+        generationConfig: {},
+      });
+
+      const input = [
+        ...data?.history?.map((message) => message.parts[0].text) || [],
+        img.dbData?.filePath ? [img.dbData, text] : text,
+      ];
+
 
       const result = await chat.sendMessageStream(input);
 
@@ -173,7 +184,10 @@ const NewPrompt = ({ data }) => {
       setAnswer(accumulatedText);
 
       // Ensure chat history is updated before UI refresh
+      data.history.push({ role: "user", parts: [{ text: question }] });
+      data.history.push({ role: "model", parts: [{ text: answer }] });
       await mutation.mutateAsync();
+
       setLoading(false);
 
 
