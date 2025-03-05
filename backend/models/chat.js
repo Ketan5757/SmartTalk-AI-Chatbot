@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 const chatSchema = new mongoose.Schema({
     userId:{
         type:  String,
-        rewuired: true
+        required: true
     },
     history:[
         {
