@@ -153,11 +153,30 @@ const NewPrompt = ({ data }) => {
         generationConfig: {},
       });
 
+      // const input = [
+      //   ...data?.history?.map((message) => message.parts[0].text) || [],
+      //   img.dbData?.filePath ? [img.dbData, text] : text,
+      // ];
+      // const input = [     ...data?.history?.map((message) => ({ text: message.parts[0].text })) || [],     ...(img.dbData?.filePath ? [{ text }, img.dbData] : [{ text }]) ];
+
+
       const input = [
-        ...data?.history?.map((message) => message.parts[0].text) || [],
-        img.dbData?.filePath ? [img.dbData, text] : text,
+        ...(data?.history?.map((message) => ({ text: message.parts[0].text })) || []),
+        ...(img.dbData?.base64
+          ? [
+            { text }, // Add the text message
+            {
+              inlineData: {
+                mimeType: img.dbData.mimeType || "image/png", // Adjust the mimeType dynamically
+                data: img.dbData.base64 // Now properly passing base64-encoded data
+              }
+            }
+          ]
+          : [{ text }]
+        ),
       ];
 
+      console.log('----------', input)
 
       const result = await chat.sendMessageStream(input);
 
