@@ -31,7 +31,7 @@ const NewPrompt = ({ data }) => {
         {
           question: question.length ? question : undefined,
           answer,
-          img: img.dbData?.filePath ? { filePath: img.dbData.filePath } : undefined,
+          img: img.dbData?.filePath || undefined,
         },
         { withCredentials: true }
       );
@@ -100,11 +100,15 @@ const NewPrompt = ({ data }) => {
         const cleanText = accumulatedText.replace(/```json|```/g, "").trim();
         const parsedResponse = JSON.parse(cleanText);
 
-        // 🔹 If Gemini says it's NOT a weather query, get a normal AI response
+        // 🔹 If Gemini says it's NOT a weather query, get a normal AI response.
+        // Here we include the inline image data if it exists.
         if (parsedResponse.weather_query === false) {
           console.log("🔵 Not a weather query, fetching normal AI response...");
+          const inputMessage = Object.entries(img.aiData).length
+            ? [img.aiData, { text }]
+            : [{ text }];
 
-          const aiResponse = await chat.sendMessageStream([{ text }]);
+          const aiResponse = await chat.sendMessageStream(inputMessage);
           let aiText = "";
 
           for await (const chunk of aiResponse.stream) {
@@ -128,13 +132,13 @@ const NewPrompt = ({ data }) => {
           );
 
           const { 
-            weather, temperature, humidity, wind_speed, feels_like, 
-            rain_chance, sunrise, sunset, air_quality 
+            weather, temperature, humidity, wind_speed, 
+            rain_chance, air_quality 
           } = weatherRes.data;
 
           const formatTime = (timestamp) => {
-              const date = new Date(timestamp * 1000);
-              return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+            const date = new Date(timestamp * 1000);
+            return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
           };
 
           // 🔹 Generate a realistic weather report
@@ -144,8 +148,7 @@ const NewPrompt = ({ data }) => {
           - 💧 Humidity: **${humidity}%**  
           - 💨 Wind Speed: **${wind_speed} m/s**  
           ${rain_chance ? `- 🌧️ Chance of Rain: **${rain_chance}%**` : ""}  
-          ${air_quality ? `- 🌍 Air Quality Index (AQI): **${air_quality}**` : ""} `
-          
+          ${air_quality ? `- 🌍 Air Quality Index (AQI): **${air_quality}**` : ""} `;
 
           console.log("✅ Enhanced Weather Response Generated:", weatherText);
 
@@ -159,6 +162,7 @@ const NewPrompt = ({ data }) => {
         console.log("📝 Gemini did not return JSON, using normal response.");
       }
 
+      // Fallback: if Gemini's JSON parsing fails, use the raw accumulated text.
       setAnswer(accumulatedText);
       await new Promise((resolve) => setTimeout(resolve, 100));
       await mutation.mutateAsync();
