@@ -10,10 +10,12 @@ import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
 const port = process.env.PORT || 3000;
 const app = express();
 
-app.use(cors({
-  origin: process.env.CLIENT_URL,
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL,
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 
@@ -44,17 +46,22 @@ app.get("/api/weather/:location", async (req, res) => {
   console.log(`🌍 Fetching weather data for: ${location}`);
 
   if (!location) {
-    return res.status(400).json({ error: "❌ Invalid location parameter." });
+    return res
+      .status(400)
+      .json({ error: "❌ Invalid location parameter." });
   }
 
   try {
-    const response = await axios.get(`https://api.openweathermap.org/data/2.5/weather`, {
-      params: {
-        q: location,
-        appid: process.env.WEATHER_API_KEY,  // Ensure API Key is correct
-        units: "metric",
-      },
-    });
+    const response = await axios.get(
+      `https://api.openweathermap.org/data/2.5/weather`,
+      {
+        params: {
+          q: location,
+          appid: process.env.WEATHER_API_KEY, // Ensure API Key is correct
+          units: "metric",
+        },
+      }
+    );
 
     console.log("✅ Weather API Response:", response.data);
     res.json({
@@ -64,18 +71,64 @@ app.get("/api/weather/:location", async (req, res) => {
       humidity: response.data.main.humidity,
       wind_speed: response.data.wind.speed,
     });
-
   } catch (error) {
     if (error.response) {
-      console.error(`❌ OpenWeather API Error:`, error.response.data);
-      res.status(error.response.status).json({ error: error.response.data.message || "Error fetching weather data!" });
+      console.error(
+        `❌ OpenWeather API Error:`,
+        error.response.data
+      );
+      res
+        .status(error.response.status)
+        .json({ error: error.response.data.message || "Error fetching weather data!" });
     } else {
       console.error(`❌ Internal Server Error:`, error.message);
-      res.status(500).json({ error: "Internal server error while fetching weather data!" });
+      res
+        .status(500)
+        .json({ error: "Internal server error while fetching weather data!" });
     }
   }
 });
 
+// Deutsche Bahn API route with improved error logging
+app.get("/api/deutschebahn", async (req, res) => {
+  const { departure, destination } = req.query;
+  console.log(`🚆 Fetching train data from ${departure} to ${destination}`);
+
+  if (!departure || !destination) {
+    return res.status(400).json({ error: "❌ Please provide both departure and destination parameters." });
+  }
+
+  try {
+    // Replace the URL below with the actual Deutsche Bahn API endpoint.
+    const dbApiUrl = `https://developers.deutschebahn.com/db-api-marketplace/apis/node/36611`;
+
+    const response = await axios.get(dbApiUrl, {
+      params: {
+        departure,
+        destination,
+      },
+      headers: { Authorization: `Bearer ${process.env.DB_API_KEY}` },
+    });
+
+    // Log the external API response for debugging
+    console.log("✅ Deutsche Bahn API Response:", response.data);
+
+    if (response.data && response.data.trains) {
+      res.json({ trains: response.data.trains });
+    } else {
+      console.error("❌ No train data found in the response.");
+      res.status(404).json({ error: "No train data found" });
+    }
+  } catch (error) {
+    if (error.response) {
+      console.error("❌ Error fetching train data:", error.response.data);
+      res.status(error.response.status).json({ error: error.response.data });
+    } else {
+      console.error("❌ Error fetching train data:", error.message);
+      res.status(500).json({ error: "Failed to fetch train data" });
+    }
+  }
+});
 
 // Create new chat
 app.post("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {
@@ -153,8 +206,8 @@ app.put("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
     const updatedChat = await Chat.findOneAndUpdate(
       { _id: req.params.id, userId },
       { $push: { history: { $each: newItems } } },
-      { new: true } // 🔹 Ensures the updated chat is returned
-  );
+      { new: true } // Ensures the updated chat is returned
+    );
 
     res.status(200).send(updatedChat);
   } catch (err) {
