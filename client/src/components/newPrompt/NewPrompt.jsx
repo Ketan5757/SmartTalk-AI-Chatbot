@@ -65,28 +65,34 @@ const NewPrompt = ({ data }) => {
 
     try {
       const chat = model.startChat({
-        history: data?.history?.map((message) => ({
-          role: message.role,
-          parts: [{ text: message.parts[0].text }],
-        })) || [],
+        history:
+          data?.history?.map((message) => ({
+            role: message.role,
+            parts: [{ text: message.parts[0].text }],
+          })) || [],
         generationConfig: {},
       });
 
-      // 🔹 Update Gemini prompt to detect both weather and train queries.
-      const input = [{
-        text: `You are an AI chatbot. Identify if the user is asking about the weather or train journeys with Deutsche Bahn.
-        
+      // 🔹 Update Gemini prompt to detect weather, train, or news queries.
+      const input = [
+        {
+          text: `You are an AI chatbot. Identify if the user is asking about the weather, train journeys with Deutsche Bahn, or news.
+          
 - If it's a weather query, extract the city and return JSON like:
   { "weather_query": true, "location": "Mannheim" }
   
 - If it's a train query, extract the departure and destination and return JSON like:
   { "train_query": true, "departure": "Mannheim", "destination": "Heidelberg" }
   
+- If it's a news query, extract the topic or location and return JSON like:
+  { "news_query": true, "query": "Mannheim" }
+  
 - If it's neither, return:
-  { "weather_query": false, "train_query": false }
+  { "weather_query": false, "train_query": false, "news_query": false }
   
 User message: "${text}"`
-      }];
+        },
+      ];
 
       console.log("🔵 Sending query to Gemini...");
       const result = await chat.sendMessageStream(input);
@@ -104,17 +110,26 @@ User message: "${text}"`
         const parsedResponse = JSON.parse(cleanText);
 
         // 🔹 Check if the query is a train query.
-        if (parsedResponse.train_query && parsedResponse.departure && parsedResponse.destination) {
-          console.log("🚆 Detected train query from", parsedResponse.departure, "to", parsedResponse.destination);
-          // Call your backend endpoint for Deutsche Bahn. Ensure your backend uses your DB API key.
+        if (
+          parsedResponse.train_query &&
+          parsedResponse.departure &&
+          parsedResponse.destination
+        ) {
+          console.log(
+            "🚆 Detected train query from",
+            parsedResponse.departure,
+            "to",
+            parsedResponse.destination
+          );
           const trainRes = await axios.get(
-            `${import.meta.env.VITE_API_URL}/api/deutschebahn?departure=${encodeURIComponent(parsedResponse.departure)}&destination=${encodeURIComponent(parsedResponse.destination)}`,
+            `${import.meta.env.VITE_API_URL}/api/deutschebahn?departure=${encodeURIComponent(
+              parsedResponse.departure
+            )}&destination=${encodeURIComponent(parsedResponse.destination)}`,
             { withCredentials: true }
           );
-          // Assume the response contains an array of available trains.
-          const trains = trainRes.data.trains; 
+          const trains = trainRes.data.trains;
           let trainText = `🚆 **Train options from ${parsedResponse.departure} to ${parsedResponse.destination}:**\n`;
-          trains.forEach(train => {
+          trains.forEach((train) => {
             trainText += `- ${train.name} departing at ${train.departureTime}, arriving at ${train.arrivalTime}\n`;
           });
           setAnswer(trainText);
@@ -126,14 +141,23 @@ User message: "${text}"`
 
         // 🔹 Check if the query is a weather query.
         if (parsedResponse.weather_query && parsedResponse.location) {
-          console.log("🌤️ Gemini detected a weather query for:", parsedResponse.location);
+          console.log(
+            "🌤️ Gemini detected a weather query for:",
+            parsedResponse.location
+          );
           const weatherRes = await axios.get(
-            `${import.meta.env.VITE_API_URL}/api/weather/${encodeURIComponent(parsedResponse.location)}`,
+            `${import.meta.env.VITE_API_URL}/api/weather/${encodeURIComponent(
+              parsedResponse.location
+            )}`,
             { withCredentials: true }
           );
-          const { 
-            weather, temperature, humidity, wind_speed, 
-            rain_chance, air_quality 
+          const {
+            weather,
+            temperature,
+            humidity,
+            wind_speed,
+            rain_chance,
+            air_quality,
           } = weatherRes.data;
 
           const weatherText = `🌤️ **Weather Report for ${parsedResponse.location}:**  
@@ -150,12 +174,36 @@ ${air_quality ? `- 🌍 Air Quality Index (AQI): **${air_quality}**` : ""} `;
           setLoading(false);
           return;
         }
+
+        // 🔹 Check if the query is a news query.
+        if (parsedResponse.news_query && parsedResponse.query) {
+          console.log(
+            "📰 Gemini detected a news query for:",
+            parsedResponse.query
+          );
+          const newsRes = await axios.get(
+            `${import.meta.env.VITE_API_URL}/api/news/${encodeURIComponent(
+              parsedResponse.query
+            )}`,
+            { withCredentials: true }
+          );
+          const articles = newsRes.data;
+          let newsText = `📰 **Latest news for "${parsedResponse.query}":**\n`;
+          articles.forEach((article) => {
+            newsText += `- **${article.title}** from ${article.source} ([Read More](${article.url}))\n`;
+          });
+          setAnswer(newsText);
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          await mutation.mutateAsync();
+          setLoading(false);
+          return;
+        }
       } catch (err) {
         console.log("📝 Gemini did not return valid JSON, using normal response.");
       }
 
-      // Fallback: if neither train nor weather query is detected, get a normal AI response.
-      console.log("🔵 Not a weather or train query, fetching normal AI response...");
+      // Fallback: if none of the special queries are detected, get a normal AI response.
+      console.log("🔵 Not a weather, train, or news query, fetching normal AI response...");
       const inputMessage = Object.entries(img.aiData).length
         ? [img.aiData, { text }]
         : [{ text }];
@@ -168,7 +216,6 @@ ${air_quality ? `- 🌍 Air Quality Index (AQI): **${air_quality}**` : ""} `;
       await new Promise((resolve) => setTimeout(resolve, 100));
       await mutation.mutateAsync();
       setLoading(false);
-
     } catch (err) {
       console.error("❌ Gemini API error:", err);
       setAnswer("⚠️ An error occurred, please try again.");
