@@ -100,14 +100,17 @@ app.get("/api/deutschebahn", async (req, res) => {
 
   try {
     // Replace the URL below with the actual Deutsche Bahn API endpoint.
-    const dbApiUrl = `https://developers.deutschebahn.com/db-api-marketplace/apis/node/36611`;
+    const dbApiUrl = `https://api.deutschebahn.com/timetables/v1/routes`;
 
     const response = await axios.get(dbApiUrl, {
       params: {
         departure,
         destination,
       },
-      headers: { Authorization: `Bearer ${process.env.DB_API_KEY}` },
+      headers: {
+        'X-Client-ID': process.env.VITE_DB_CLIENT_ID,
+        'X-API-Key': process.env.DB_API_KEY,
+      } 
     });
 
     // Log the external API response for debugging
