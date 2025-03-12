@@ -73,7 +73,7 @@ const NewPrompt = ({ data }) => {
         generationConfig: {},
       });
 
-      // 🔹 Update Gemini prompt to detect weather, train, or news queries.
+      // 🔹 Gemini prompt update: Detect weather, train, or news queries.
       const input = [
         {
           text: `You are an AI chatbot. Identify if the user is asking about the weather, train journeys with Deutsche Bahn, or news.
@@ -108,6 +108,62 @@ User message: "${text}"`
         // 🔹 Clean and parse the Gemini response.
         const cleanText = accumulatedText.replace(/```json|```/g, "").trim();
         const parsedResponse = JSON.parse(cleanText);
+
+        // ADD: Combined weather & news query functionality
+        if (
+          parsedResponse.weather_query &&
+          parsedResponse.location &&
+          parsedResponse.news_query &&
+          parsedResponse.query
+        ) {
+          console.log("🔄 Detected combined weather and news query.");
+          const [weatherRes, newsRes] = await Promise.all([
+            axios.get(
+              `${import.meta.env.VITE_API_URL}/api/weather/${encodeURIComponent(
+                parsedResponse.location
+              )}`,
+              { withCredentials: true }
+            ),
+            axios.get(
+              `${import.meta.env.VITE_API_URL}/api/news/${encodeURIComponent(
+                parsedResponse.query
+              )}`,
+              { withCredentials: true }
+            ),
+          ]);
+
+          let combinedText = "";
+
+          // Process weather response:
+          const {
+            weather,
+            temperature,
+            humidity,
+            wind_speed,
+            rain_chance,
+            air_quality,
+          } = weatherRes.data;
+          combinedText += `🌤️ **Weather Report for ${parsedResponse.location}:**  
+- 🌡️ Temperature: **${temperature}°C**  
+- ☁️ Condition: **${weather}**  
+- 💧 Humidity: **${humidity}%**  
+- 💨 Wind Speed: **${wind_speed} m/s**  
+${rain_chance ? `- 🌧️ Chance of Rain: **${rain_chance}%**` : ""}  
+${air_quality ? `- 🌍 Air Quality Index (AQI): **${air_quality}**` : ""}\n\n`;
+
+          // Process news response:
+          const articles = newsRes.data;
+          combinedText += `📰 **Latest news for "${parsedResponse.query}":**\n`;
+          articles.forEach((article) => {
+            combinedText += `- **${article.title}** from ${article.source} ([Read More](${article.url}))\n`;
+          });
+
+          setAnswer(combinedText);
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          await mutation.mutateAsync();
+          setLoading(false);
+          return;
+        }
 
         // 🔹 Check if the query is a train query.
         if (

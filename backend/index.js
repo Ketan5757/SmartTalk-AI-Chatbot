@@ -7,7 +7,6 @@ import Chat from "./models/chat.js";
 import UserChats from "./models/userChats.js";
 import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
 
-
 const port = process.env.PORT || 3000;
 const app = express();
 
@@ -71,18 +70,30 @@ app.get("/api/weather/:location", async (req, res) => {
       wind_speed: response.data.wind.speed,
     });
   } catch (error) {
-    console.error(`❌ OpenWeather API Error:`, error.response?.data || error.message);
-    res.status(error.response?.status || 500).json({ error: "Error fetching weather data!" });
+    console.error(
+      `❌ OpenWeather API Error:`,
+      error.response?.data || error.message
+    );
+    res
+      .status(error.response?.status || 500)
+      .json({ error: "Error fetching weather data!" });
   }
 });
 
 // 🚆 Deutsche Bahn API Route
 app.get("/api/deutschebahn", async (req, res) => {
   const { departure, destination } = req.query;
-  console.log(`🚆 Fetching train data from ${departure} to ${destination}`);
+  console.log(
+    `🚆 Fetching train data from ${departure} to ${destination}`
+  );
 
   if (!departure || !destination) {
-    return res.status(400).json({ error: "❌ Please provide both departure and destination parameters." });
+    return res
+      .status(400)
+      .json({
+        error:
+          "❌ Please provide both departure and destination parameters.",
+      });
   }
 
   try {
@@ -91,17 +102,26 @@ app.get("/api/deutschebahn", async (req, res) => {
     const response = await axios.get(dbApiUrl, {
       params: { departure, destination },
       headers: {
-        'X-Client-ID': process.env.VITE_DB_CLIENT_ID,
-        'X-API-Key': process.env.DB_API_KEY,
-      }
+        "X-Client-ID": process.env.VITE_DB_CLIENT_ID,
+        "X-API-Key": process.env.DB_API_KEY,
+      },
     });
 
     console.log("✅ Deutsche Bahn API Response:", response.data);
 
-    res.json(response.data.trains ? { trains: response.data.trains } : { error: "No train data found" });
+    res.json(
+      response.data.trains
+        ? { trains: response.data.trains }
+        : { error: "No train data found" }
+    );
   } catch (error) {
-    console.error("❌ Error fetching train data:", error.response?.data || error.message);
-    res.status(error.response?.status || 500).json({ error: "Failed to fetch train data" });
+    console.error(
+      "❌ Error fetching train data:",
+      error.response?.data || error.message
+    );
+    res
+      .status(error.response?.status || 500)
+      .json({ error: "Failed to fetch train data" });
   }
 });
 
@@ -111,7 +131,9 @@ app.get("/api/news/:query", async (req, res) => {
   console.log(`📰 Fetching news for: ${query}`);
 
   if (!query) {
-    return res.status(400).json({ error: "❌ Invalid query parameter." });
+    return res
+      .status(400)
+      .json({ error: "❌ Invalid query parameter." });
   }
 
   try {
@@ -128,19 +150,26 @@ app.get("/api/news/:query", async (req, res) => {
     console.log("✅ News API Response:", response.data);
 
     if (!response.data.articles.length) {
-      return res.status(404).json({ error: "No news found for this query." });
+      return res
+        .status(404)
+        .json({ error: "No news found for this query." });
     }
 
     res.json(
-      response.data.articles.map(article => ({
+      response.data.articles.map((article) => ({
         title: article.title,
         source: article.source.name,
         url: article.url,
       }))
     );
   } catch (error) {
-    console.error("❌ Error fetching news:", error.response?.data || error.message);
-    res.status(error.response?.status || 500).json({ error: "Error fetching news!" });
+    console.error(
+      "❌ Error fetching news:",
+      error.response?.data || error.message
+    );
+    res
+      .status(error.response?.status || 500)
+      .json({ error: "Error fetching news!" });
   }
 });
 
@@ -201,7 +230,15 @@ app.put("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
   const { question, answer, img } = req.body;
 
   const newItems = [
-    ...(question ? [{ role: "user", parts: [{ text: question }], ...(img && { img }) }] : []),
+    ...(question
+      ? [
+          {
+            role: "user",
+            parts: [{ text: question }],
+            ...(img && { img }),
+          },
+        ]
+      : []),
     { role: "model", parts: [{ text: answer }] },
   ];
 
