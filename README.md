@@ -1,6 +1,10 @@
 # SmartTalk-AI
 
-SmartTalk-AI is an AI-powered chat application that integrates real-time weather updates and the latest news using OpenWeather API and News API. The app also supports image analysis, code assistance, and interactive AI conversations.
+SmartTalk-AI is an **AI-powered chat application** that enhances **productivity and information retrieval** through **intelligent conversations**. It integrates **real-time weather updates**, **latest news**, **image analysis**, and **AI-driven code assistance** into a single platform.
+
+Built with Google's Gemini AI (LLM) for intelligent responses, it efficiently **understands, generates, and processes natural language queries**, providing **context-aware** responses. Using **OpenWeather API** and **News API**, it delivers **real-time insights** with **interactive and multimodal functionalities**.
+
+Built with modern web technologies, SmartTalk-AI ensures a **fast, seamless, and intuitive user experience**.
 
 ## Features
 
@@ -31,13 +35,6 @@ SmartTalk-AI is an AI-powered chat application that integrates real-time weather
 | **TanStack Query** | Optimized API Handling |
 | **Tailwind CSS** | Styling |
 
-## Project Structure
-
-📦 SmartTalk-AI ├── 📂 src │ ├── 📂 components │ │ ├── ChatList.jsx │ │ ├── NewPrompt.jsx │ │ ├── Upload.jsx │ ├── 📂 layouts │ │ ├── RootLayout.jsx │ │ ├── DashboardLayout.jsx │ ├── 📂 routes │ │ ├── Homepage.jsx │ │ ├── DashboardPage.jsx │ │ ├── ChatPage.jsx │ │ ├── SignInPage.jsx │ │ ├── SignUpPage.jsx │ ├── 📂 styles │ │ ├── index.css │ ├── 📂 lib │ │ ├── gemini.js │ ├── App.jsx │ ├── main.jsx ├── .env ├── .gitignore ├── index.html ├── vite.config.js ├── package.json ├── README.md
-
-bash
-Copy
-Edit
 
 ## Installation & Setup
 
@@ -48,33 +45,20 @@ Ensure you have **Node.js** and **npm** installed on your system.
 ### Clone the Repository
 
 ```sh
-git clone https://github.com/yourusername/SmartTalk-AI.git
-cd SmartTalk-AI
-Install Dependencies
-sh
-Copy
-Edit
-npm install
-Install ImageKit Dependency
-sh
-Copy
-Edit
-npm install imagekitio-react
-Environment Variables
-Create a .env file in the root directory and add the following:
+git clone https://github.com/Ketan5757/SmartTalk-AI-Chatbot
+```
 
-ini
-Copy
-Edit
-VITE_CLERK_PUBLISHABLE_KEY=your-clerk-publishable-key
-VITE_IMAGE_KIT_ENDPOINT=your-imagekit-endpoint
-VITE_IMAGE_KIT_PUBLIC_KEY=your-imagekit-public-key
-VITE_GEMINI_PUBLIC_KEY=your-gemini-api-key
-VITE_API_URL=http://localhost:3000
-VITE_OPENWEATHER_API_KEY=your-openweather-api-key
-VITE_NEWS_API_KEY=your-news-api-key
-Run the Project
-sh
-Copy
-Edit
-npm run dev
+### Install Dependencies
+```sh
+- npm install
+```
+
+### Install ImageKit Dependency
+```sh
+- npm install imagekitio-react
+```
+
+### Run the Project
+```sh
+- npm run dev
+```
