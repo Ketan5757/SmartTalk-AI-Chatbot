@@ -217,12 +217,12 @@ ${air_quality ? `- 🌍 Air Quality Index (AQI): **${air_quality}**` : ""}\n\n`;
           } = weatherRes.data;
 
           const weatherText = `🌤️ **Weather Report for ${parsedResponse.location}:**  
-- 🌡️ Temperature: **${temperature}°C**  
-- ☁️ Condition: **${weather}**  
-- 💧 Humidity: **${humidity}%**  
-- 💨 Wind Speed: **${wind_speed} m/s**  
-${rain_chance ? `- 🌧️ Chance of Rain: **${rain_chance}%**` : ""}  
-${air_quality ? `- 🌍 Air Quality Index (AQI): **${air_quality}**` : ""} `;
+          - 🌡️ Temperature: **${temperature}°C**  
+          - ☁️ Condition: **${weather}**  
+          - 💧 Humidity: **${humidity}%**  
+          - 💨 Wind Speed: **${wind_speed} m/s**  
+          ${rain_chance ? `- 🌧️ Chance of Rain: **${rain_chance}%**` : ""}  
+          ${air_quality ? `- 🌍 Air Quality Index (AQI): **${air_quality}**` : ""} `;
           
           setAnswer(weatherText);
           await new Promise((resolve) => setTimeout(resolve, 100));
