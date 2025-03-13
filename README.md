@@ -50,15 +50,15 @@ git clone https://github.com/Ketan5757/SmartTalk-AI-Chatbot
 
 ### Install Dependencies
 ```sh
-- npm install
+npm install
 ```
 
 ### Install ImageKit Dependency
 ```sh
-- npm install imagekitio-react
+npm install imagekitio-react
 ```
 
 ### Run the Project
 ```sh
-- npm run dev
+npm run dev
 ```
