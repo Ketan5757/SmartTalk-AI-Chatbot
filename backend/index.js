@@ -40,7 +40,7 @@ app.get("/api/upload", (req, res) => {
   res.send(result);
 });
 
-// 🌦️ Weather API Route
+//  Weather API Route
 app.get("/api/weather/:location", async (req, res) => {
   const location = req.params.location;
   console.log(`🌍 Fetching weather data for: ${location}`);
@@ -80,7 +80,7 @@ app.get("/api/weather/:location", async (req, res) => {
   }
 });
 
-// 🚆 Deutsche Bahn API Route
+//  Deutsche Bahn API Route
 app.get("/api/deutschebahn", async (req, res) => {
   const { departure, destination } = req.query;
   console.log(
@@ -125,7 +125,7 @@ app.get("/api/deutschebahn", async (req, res) => {
   }
 });
 
-// 📰 News API Route (NEWLY ADDED)
+//  News API Route 
 app.get("/api/news/:query", async (req, res) => {
   const query = req.params.query;
   console.log(`📰 Fetching news for: ${query}`);
@@ -224,7 +224,7 @@ app.get("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
   }
 });
 
-// 💬 Update Chat by ID
+//  Update Chat by ID
 app.put("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
   const userId = req.auth.userId;
   const { question, answer, img } = req.body;

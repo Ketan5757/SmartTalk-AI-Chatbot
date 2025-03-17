@@ -78,19 +78,19 @@ const NewPrompt = ({ data }) => {
         {
           text: `You are an AI chatbot. Identify if the user is asking about the weather, train journeys with Deutsche Bahn, or news.
           
-- If it's a weather query, extract the city and return JSON like:
-  { "weather_query": true, "location": "Mannheim" }
-  
-- If it's a train query, extract the departure and destination and return JSON like:
-  { "train_query": true, "departure": "Mannheim", "destination": "Heidelberg" }
-  
-- If it's a news query, extract the topic or location and return JSON like:
-  { "news_query": true, "query": "Mannheim" }
-  
-- If it's neither, return:
-  { "weather_query": false, "train_query": false, "news_query": false }
-  
-User message: "${text}"`
+          - If it's a weather query, extract the city and return JSON like:
+          { "weather_query": true, "location": "Mannheim" }
+           
+          - If it's a train query, extract the departure and destination and return JSON like:
+          { "train_query": true, "departure": "Mannheim", "destination": "Heidelberg" }
+           
+          - If it's a news query, extract the topic or location and return JSON like:
+          { "news_query": true, "query": "Mannheim" }
+           
+          - If it's neither, return:
+          { "weather_query": false, "train_query": false, "news_query": false }
+           
+          User message: "${text}"`
         },
       ];
 
@@ -144,12 +144,12 @@ User message: "${text}"`
             air_quality,
           } = weatherRes.data;
           combinedText += `🌤️ **Weather Report for ${parsedResponse.location}:**  
-- 🌡️ Temperature: **${temperature}°C**  
-- ☁️ Condition: **${weather}**  
-- 💧 Humidity: **${humidity}%**  
-- 💨 Wind Speed: **${wind_speed} m/s**  
-${rain_chance ? `- 🌧️ Chance of Rain: **${rain_chance}%**` : ""}  
-${air_quality ? `- 🌍 Air Quality Index (AQI): **${air_quality}**` : ""}\n\n`;
+          - 🌡️ Temperature: **${temperature}°C**  
+          - ☁️ Condition: **${weather}**  
+          - 💧 Humidity: **${humidity}%**  
+          - 💨 Wind Speed: **${wind_speed} m/s**  
+          ${rain_chance ? `- 🌧️ Chance of Rain: **${rain_chance}%**` : ""}  
+          ${air_quality ? `- 🌍 Air Quality Index (AQI): **${air_quality}**` : ""}\n\n`;
 
           // Process news response:
           const articles = newsRes.data;
