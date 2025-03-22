@@ -76,22 +76,22 @@ const NewPrompt = ({ data }) => {
       // 🔹 Gemini prompt update: Detect weather, train, or news queries.
       const input = [
         {
-          text: `You are an AI chatbot. Identify if the user is asking about the weather, train journeys with Deutsche Bahn, or news.
-          
-          - If it's a weather query, extract the city and return JSON like:
-          { "weather_query": true, "location": "Mannheim" }
-           
-          - If it's a train query, extract the departure and destination and return JSON like:
-          { "train_query": true, "departure": "Mannheim", "destination": "Heidelberg" }
-           
-          - If it's a news query, extract the topic or location and return JSON like:
-          { "news_query": true, "query": "Mannheim" }
-           
-          - If it's neither, return:
-          { "weather_query": false, "train_query": false, "news_query": false }
-           
-          User message: "${text}"`
-        },
+          text: `You are an AI chatbot. Detect the type of query from the user's message. Classify it into one of three categories: weather, train journeys with Deutsche Bahn, or news.
+      
+      - For a weather query, extract the city and return:
+        { "weather_query": true, "location": "Mannheim" }
+      
+      - For a train query, extract the departure and destination and return:
+        { "train_query": true, "departure": "Mannheim", "destination": "Heidelberg" }
+      
+      - For a news query, only classify as news if the user explicitly includes keywords such as "news", "headlines", "latest", "updates", or "current events". In that case, extract the topic and return:
+        { "news_query": true, "query": "Your extracted topic" }
+      
+      - Otherwise, if the user's message does not include those explicit news keywords (for example, "Who is Donald Trump"), then return:
+        { "news_query": false }
+      
+      User message: "${text}"`
+        }
       ];
 
       console.log("🔵 Sending query to Gemini...");
