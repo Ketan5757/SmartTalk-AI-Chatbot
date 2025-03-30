@@ -2,7 +2,7 @@ import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-// 1️⃣ Get Weather Data (Frontend calls Backend)
+// Get Weather Data (Frontend calls Backend)
 export const getWeather = async (city) => {
   try {
     const response = await axios.get(`${API_URL}/api/weather/${city}`);
@@ -13,7 +13,7 @@ export const getWeather = async (city) => {
   }
 };
 
-// 2️⃣ Get Train Schedules (Frontend calls Backend)
+// Get Train Schedules (Frontend calls Backend)
 export const getTrainSchedule = async (station) => {
   try {
     const response = await axios.get(`${API_URL}/api/trains/${station}`);
@@ -24,7 +24,7 @@ export const getTrainSchedule = async (station) => {
   }
 };
 
-// 3️⃣ Get Route Directions (Frontend calls Backend)
+// Get Route Directions (Frontend calls Backend)
 export const getRoute = async (origin, destination) => {
   try {
     const response = await axios.get(`${API_URL}/api/routes/${origin}/${destination}`);

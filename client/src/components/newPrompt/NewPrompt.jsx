@@ -73,12 +73,12 @@ const NewPrompt = ({ data }) => {
         generationConfig: {},
       });
 
-      // 🔹 Gemini prompt update: Detect weather, train, or news queries.
+      // Gemini prompt update: Detect weather (including temperature queries), train, or news queries.
       const input = [
         {
           text: `You are an AI chatbot. Detect the type of query from the user's message. Classify it into one of three categories: weather, train journeys with Deutsche Bahn, or news.
       
-      - For a weather query, extract the city and return:
+      - For a weather query (including queries asking about temperature), extract the city and return:
         { "weather_query": true, "location": "Mannheim" }
       
       - For a train query, extract the departure and destination and return:
@@ -105,14 +105,23 @@ const NewPrompt = ({ data }) => {
       console.log("📝 Gemini Raw Response:", accumulatedText);
 
       try {
-        // 🔹 Clean and parse the Gemini response.
+        // Clean and parse the Gemini response.
         const cleanText = accumulatedText.replace(/```json|```/g, "").trim();
         const parsedResponse = JSON.parse(cleanText);
 
-        // ADD: Combined weather & news query functionality
+        // Extract location: use parsedResponse.location if available, otherwise try to extract from text if it includes "temperature".
+        let location = parsedResponse.location;
+        if (!location && text.toLowerCase().includes("temperature")) {
+          const match = text.match(/in\s+([A-Za-z]+)/i);
+          if (match) {
+            location = match[1];
+          }
+        }
+
+        // Combined weather & news query functionality: trigger if there's indication of both weather (or temperature) and news.
         if (
-          parsedResponse.weather_query &&
-          parsedResponse.location &&
+          (parsedResponse.weather_query || text.toLowerCase().includes("temperature")) &&
+          location &&
           parsedResponse.news_query &&
           parsedResponse.query
         ) {
@@ -120,7 +129,7 @@ const NewPrompt = ({ data }) => {
           const [weatherRes, newsRes] = await Promise.all([
             axios.get(
               `${import.meta.env.VITE_API_URL}/api/weather/${encodeURIComponent(
-                parsedResponse.location
+                location
               )}`,
               { withCredentials: true }
             ),
@@ -143,7 +152,7 @@ const NewPrompt = ({ data }) => {
             rain_chance,
             air_quality,
           } = weatherRes.data;
-          combinedText += `🌤️ **Weather Report for ${parsedResponse.location}:**  
+          combinedText += `🌤️ **Weather Report for ${location}:**  
           - 🌡️ Temperature: **${temperature}°C**  
           - ☁️ Condition: **${weather}**  
           - 💧 Humidity: **${humidity}%**  
@@ -165,7 +174,7 @@ const NewPrompt = ({ data }) => {
           return;
         }
 
-        // 🔹 Check if the query is a train query.
+        //  Check if the query is a train query.
         if (
           parsedResponse.train_query &&
           parsedResponse.departure &&
@@ -195,7 +204,7 @@ const NewPrompt = ({ data }) => {
           return;
         }
 
-        // 🔹 Check if the query is a weather query.
+        //  Check if the query is a weather query.
         if (parsedResponse.weather_query && parsedResponse.location) {
           console.log(
             "🌤️ Gemini detected a weather query for:",
@@ -231,7 +240,7 @@ const NewPrompt = ({ data }) => {
           return;
         }
 
-        // 🔹 Check if the query is a news query.
+        //  Check if the query is a news query.
         if (parsedResponse.news_query && parsedResponse.query) {
           console.log(
             "📰 Gemini detected a news query for:",

@@ -18,7 +18,7 @@ const ChatPage = () => {
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/chats/${chatId}`, { credentials: "include" });
             return response.json();
         },
-        refetchInterval: 2000, // 🔹 Polling every 2 seconds to get updated messages
+        refetchInterval: 2000, 
     });
 
     console.log(data)
