@@ -25,7 +25,7 @@ const NewPrompt = ({ data }) => {
 
   const mutation = useMutation({
     mutationFn: async () => {
-      console.log("🔄 Updating chat history:", { question, answer, img });
+      console.log(" Updating chat history:", { question, answer, img });
       return axios.put(
         `${import.meta.env.VITE_API_URL}/api/chats/${data._id}`,
         {
@@ -37,7 +37,7 @@ const NewPrompt = ({ data }) => {
       );
     },
     onSuccess: () => {
-      console.log("✅ Chat history updated!");
+      console.log(" Chat history updated!");
       queryClient.invalidateQueries({ queryKey: ["chat", data._id] });
 
       data.history.push({ role: "user", parts: [{ text: question }] });
@@ -61,7 +61,7 @@ const NewPrompt = ({ data }) => {
 
     setQuestion(text);
     setLoading(true);
-    console.log("🟢 User input received:", text);
+    console.log(" User input received:", text);
 
     try {
       const chat = model.startChat({
@@ -73,7 +73,7 @@ const NewPrompt = ({ data }) => {
         generationConfig: {},
       });
 
-      // Gemini prompt update: Detect weather (including temperature queries), train, or news queries.
+      // Gemini prompt : Detect weather, train, or news queries.
       const input = [
         {
           text: `You are an AI chatbot. Detect the type of query from the user's message. Classify it into one of three categories: weather, train journeys with Deutsche Bahn, or news.
@@ -94,7 +94,7 @@ const NewPrompt = ({ data }) => {
         }
       ];
 
-      console.log("🔵 Sending query to Gemini...");
+      console.log("Sending query to Gemini...");
       const result = await chat.sendMessageStream(input);
 
       let accumulatedText = "";
@@ -102,7 +102,7 @@ const NewPrompt = ({ data }) => {
         accumulatedText += chunk.text();
       }
 
-      console.log("📝 Gemini Raw Response:", accumulatedText);
+      console.log(" Gemini Raw Response:", accumulatedText);
 
       try {
         // Clean and parse the Gemini response.
@@ -125,7 +125,7 @@ const NewPrompt = ({ data }) => {
           parsedResponse.news_query &&
           parsedResponse.query
         ) {
-          console.log("🔄 Detected combined weather and news query.");
+          console.log(" Detected combined weather and news query.");
           const [weatherRes, newsRes] = await Promise.all([
             axios.get(
               `${import.meta.env.VITE_API_URL}/api/weather/${encodeURIComponent(
@@ -264,11 +264,11 @@ const NewPrompt = ({ data }) => {
           return;
         }
       } catch (err) {
-        console.log("📝 Gemini did not return valid JSON, using normal response.");
+        console.log(" Gemini did not return valid JSON, using normal response.");
       }
 
       // Fallback: if none of the special queries are detected, get a normal AI response.
-      console.log("🔵 Not a weather, train, or news query, fetching normal AI response...");
+      console.log(" Not a weather, train, or news query, fetching normal AI response...");
       const inputMessage = Object.entries(img.aiData).length
         ? [img.aiData, { text }]
         : [{ text }];
@@ -282,7 +282,7 @@ const NewPrompt = ({ data }) => {
       await mutation.mutateAsync();
       setLoading(false);
     } catch (err) {
-      console.error("❌ Gemini API error:", err);
+      console.error(" Gemini API error:", err);
       setAnswer("⚠️ An error occurred, please try again.");
     } finally {
       setLoading(false);
