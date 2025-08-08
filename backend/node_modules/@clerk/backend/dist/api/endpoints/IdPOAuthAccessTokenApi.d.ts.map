@@ -1,0 +1,1 @@
+{"version":3,"file":"IdPOAuthAccessTokenApi.d.ts","sourceRoot":"","sources":["../../../src/api/endpoints/IdPOAuthAccessTokenApi.ts"],"names":[],"mappings":"AACA,OAAO,KAAK,EAAE,mBAAmB,EAAE,MAAM,cAAc,CAAC;AACxD,OAAO,EAAE,WAAW,EAAE,MAAM,eAAe,CAAC;AAI5C,qBAAa,sBAAuB,SAAQ,WAAW;IAC/C,iBAAiB,CAAC,WAAW,EAAE,MAAM;CAO5C"}
